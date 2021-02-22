@@ -9,8 +9,8 @@ import pyspark.sql.functions as psf
 schema = StructType([
     StructField('crime_id', StringType(), True),
     StructField('original_crime_type_name', StringType(), True),
-    StructField('report_date', StringType(), True),
-    StructField('call_date', StringType(), True),
+    StructField('report_date', DateType(), True),
+    StructField('call_date', DateType(), True),
     StructField('offense_date', StringType(), True),
     StructField('call_time', StringType(), True),
     StructField('call_date_time', TimestampType(), True),
@@ -35,7 +35,8 @@ def run_spark_job(spark):
         .option("kafka.bootstrap.servers", "localhost:3456") \
         .option("subscribe", "police.service.calls") \
         .option("startingOffsets", "earliest") \
-        .option("maxOffsetsPerTrigger", 200) \
+        .option("maxOffsetsPerTrigger", 1000) \
+        .option("maxRatePerPartition", 1000) \
         .option("stopGracefullyOnShutdown", "true") \
         .load()
 
@@ -112,7 +113,7 @@ if __name__ == "__main__":
         .config("spark.ui.port", 3000) \
         .getOrCreate()
 
-    spark.sparkContext.setLogLevel("WARN") #done this to reduce INFO logs
+    #spark.sparkContext.setLogLevel("WARN") #done this to reduce INFO logs
     logger.info("Spark started")
 
     run_spark_job(spark)
